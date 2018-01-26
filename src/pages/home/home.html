@@ -8,11 +8,15 @@
 </ion-header>
 
 <ion-content padding>
-  <h3>Ionic Menu Starter</h3>
-
-  <p>
-    If you get lost, the <a href="http://ionicframework.com/docs/v2">docs</a> will show you the way.
-  </p>
-
-  <button ion-button secondary menuToggle>Toggle Menu</button>
+  <h2>Saquipment Case List</h2>
+  <ion-list>
+    <ion-item-sliding *ngFor="let expense of expenses; let i=index " (click)="samplingCaseTapped($event,expense.case_no,expense.examined_institute)">
+      <ion-item nopadding>
+        <p>
+          <span>{{expense.case_no}}</span>
+          <br> {{expense.examined_institute}}
+        </p>
+      </ion-item>
+    </ion-item-sliding>
+  </ion-list>
 </ion-content>
