@@ -4,6 +4,7 @@ import { IonicApp, IonicErrorHandler, IonicModule } from 'ionic-angular';
 
 import { HttpModule } from "@angular/http";
 import { SQLite } from '@ionic-native/sqlite';
+import { QRScanner } from '@ionic-native/qr-scanner';
 
 import { RestProvider } from '../providers/rest/rest';
 import { DbProvider } from '../providers/db/db';
@@ -14,6 +15,7 @@ import { ListPage } from '../pages/list/list';
 import { LoginPage } from '../pages/login/login';
 import { SamplingcasePage } from '../pages/samplingcase/samplingcase';
 import { TakeoutlistPage } from '../pages/takeoutlist/takeoutlist';
+import { QrscannerPage } from '../pages/qrscanner/qrscanner';
 
 import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
@@ -27,7 +29,8 @@ import { SplashScreen } from '@ionic-native/splash-screen';
     ListPage,
     LoginPage,
     SamplingcasePage,
-    TakeoutlistPage
+    TakeoutlistPage,
+    QrscannerPage
   ],
   imports: [
     BrowserModule,
@@ -41,7 +44,8 @@ import { SplashScreen } from '@ionic-native/splash-screen';
     ListPage,
     LoginPage,
     SamplingcasePage,
-    TakeoutlistPage
+    TakeoutlistPage,
+    QrscannerPage
   ],
   providers: [
     StatusBar,
@@ -49,7 +53,8 @@ import { SplashScreen } from '@ionic-native/splash-screen';
     {provide: ErrorHandler, useClass: IonicErrorHandler},
     RestProvider,
     DbProvider,
-    SQLite
+    SQLite,
+    QRScanner
   ]
 })
 export class AppModule {}

@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { IonicPage, NavController, NavParams } from 'ionic-angular';
 
+import { QrscannerPage } from '../qrscanner/qrscanner';
+
 /**
  * Generated class for the TakeoutlistPage page.
  *
@@ -22,7 +24,7 @@ export class TakeoutlistPage {
     console.log('ionViewDidLoad TakeoutlistPage');
   }
   qrscanner() { 
-
+    this.navCtrl.push(QrscannerPage);
   }
   takeoutsend() {
 
