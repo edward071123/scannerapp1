@@ -13,7 +13,10 @@ import { SamplingcasePage } from '../samplingcase/samplingcase';
 export class HomePage {
   resposeData: any;
   expenses: any = [];
-  constructor(public navCtrl: NavController, public restProvider: RestProvider, private toastCtrl: ToastController) {
+  constructor(
+    public navCtrl: NavController,
+    public restProvider: RestProvider,
+    private toastCtrl: ToastController) {
     let userAccount = localStorage.getItem("account");
     let userToken = localStorage.getItem("token");
     if (!userAccount || !userToken) {
