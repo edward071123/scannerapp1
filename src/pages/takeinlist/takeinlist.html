@@ -7,7 +7,7 @@
 <ion-header>
 
   <ion-navbar>
-    <ion-title>takeoutlist (共{{samplingListsCount}}筆)</ion-title>
+    <ion-title>takeinlist (共{{samplingListsCount}}筆)</ion-title>
   </ion-navbar>
 
 </ion-header>
@@ -15,17 +15,15 @@
 
 <ion-content padding>
   <ion-list>
-    <ion-item *ngFor="let samplingList of samplingLists; let i=index">
-      <span>{{samplingList.samplingno}}</span>
-      <button ion-button item-end color="danger" (click)="deleteData(samplingList.id)">
-        <ion-icon name="trash"></ion-icon>
-      </button>
+    <ion-item *ngFor="let samplingList of samplingLists; let i=index" >
+      <span>{{samplingList.saquipment_no}}</span>
+      <ion-icon name="checkmark-circle" item-right *ngIf="selectedSamplingLists.indexOf(samplingList.saquipment_no) > -1"></ion-icon>
     </ion-item>
   </ion-list>
 </ion-content>
 <ion-footer>
   <ion-toolbar>
     <button ion-button (click)="qrscanner()" full>掃描QR碼</button>
-    <button ion-button (click)="takeoutsend()" full>確定攜出</button>
+    <button ion-button (click)="takeinsend()" full>確定攜入({{selectedSamplingListsCount}}筆)</button>
   </ion-toolbar>
 </ion-footer>

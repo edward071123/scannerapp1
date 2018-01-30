@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
-import { IonicPage, NavController, NavParams, ViewController } from 'ionic-angular';
+import { IonicPage, NavController, ToastController, NavParams, ViewController } from 'ionic-angular';
 import { QRScanner, QRScannerStatus } from '@ionic-native/qr-scanner';
+import { DbProvider } from "../../providers/db/db";
+import { RestProvider } from "../../providers/rest/rest";
 /**
  * Generated class for the QrscannerPage page.
  *
@@ -14,15 +16,34 @@ import { QRScanner, QRScannerStatus } from '@ionic-native/qr-scanner';
   templateUrl: 'qrscanner.html',
 })
 export class QrscannerPage {
-
-  constructor(public navCtrl: NavController, public navParams: NavParams,
-    public qrScanner: QRScanner,
-    public viewCtrl: ViewController) {
-    this.qrscanner();
+  getType: any;
+  selectedCaseNo: any;
+  userAccount: any;
+  samplingLists: any = [];
+  constructor(public navCtrl: NavController,
+                      public navParams: NavParams,
+                      public qrScanner: QRScanner,
+                      public dbProvider: DbProvider,
+                      public restProvider: RestProvider,
+                      public viewCtrl: ViewController,
+                      private toastCtrl: ToastController) {
+    this.getType = navParams.get('type');
+    this.userAccount = localStorage.getItem("account");
+    this.selectedCaseNo = navParams.get('case');
+    this.restProvider.getServerSamplingList()
+      .then((result) => {
+        this.samplingLists = result;
+        this.qrscanner(this.userAccount, this.selectedCaseNo, this.getType, this.samplingLists);
+      })
+      .catch(function (error) {
+        this.presentToast("發生錯誤 重整畫面中");
+        this.viewCtrl._didEnter();
+        console.log(error);
+      });
   }
 
-  qrscanner() {
-
+  qrscanner(accoount,caseNo, type, list) {
+    
     // Optionally request the permission early
     this.qrScanner.prepare()
       .then((status: QRScannerStatus) => {
@@ -31,14 +52,29 @@ export class QrscannerPage {
           //alert('authorized');
           // start scanning
           let scanSub = this.qrScanner.scan().subscribe((text: string) => {
-            console.log('Scanned something', text);
-            alert(text);
-            //#keep scanner
-            
-            //this.qrScanner.hide(); // hide camera preview
+            console.log(list);
+            if (list.indexOf(text) > -1) {
+              //check if exist in db
+              this.dbProvider.checkTakeInOutRepeat(accoount, caseNo, text, type).then((result) => {
+                if (result != 0) {
+                  this.presentToast(text + "已在清單");
+                } else {
+                  return this.dbProvider.addSamplingTakeInOutDb(accoount, caseNo, text, type);
+                }
+              })
+                .then((result) => {
+                  this.presentToast(result);
+                })
+                .catch(function (error) {
+                  alert("發生錯誤");
+                  console.log(error);
+                });
+            } else {
+              this.presentToast(text+"無此設備");
+            }
             scanSub.unsubscribe(); // stop scanning
-            this.qrscanner();
-            // this.navCtrl.pop();
+            this.qrscanner(accoount, caseNo, type, list);
+
           });
 
           //this.qrScanner.resumePreview();
@@ -68,6 +104,13 @@ export class QrscannerPage {
         alert('Error is' + e);
       });
 
+  }
+  presentToast(msg) {
+    let toast = this.toastCtrl.create({
+      message: msg,
+      duration: 2000
+    });
+    toast.present();
   }
   public dismiss(): void {
     this.viewCtrl.dismiss();

@@ -14,11 +14,13 @@ import { HomePage } from '../pages/home/home';
 import { ListPage } from '../pages/list/list';
 import { LoginPage } from '../pages/login/login';
 import { SamplingcasePage } from '../pages/samplingcase/samplingcase';
+import { TakeinlistPage } from '../pages/takeinlist/takeinlist';
 import { TakeoutlistPage } from '../pages/takeoutlist/takeoutlist';
 import { QrscannerPage } from '../pages/qrscanner/qrscanner';
 
 import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
+
 
 
 
@@ -29,6 +31,7 @@ import { SplashScreen } from '@ionic-native/splash-screen';
     ListPage,
     LoginPage,
     SamplingcasePage,
+    TakeinlistPage,
     TakeoutlistPage,
     QrscannerPage
   ],
@@ -44,6 +47,7 @@ import { SplashScreen } from '@ionic-native/splash-screen';
     ListPage,
     LoginPage,
     SamplingcasePage,
+    TakeinlistPage,
     TakeoutlistPage,
     QrscannerPage
   ],
@@ -52,9 +56,9 @@ import { SplashScreen } from '@ionic-native/splash-screen';
     SplashScreen,
     {provide: ErrorHandler, useClass: IonicErrorHandler},
     RestProvider,
-    DbProvider,
     SQLite,
-    QRScanner
+    QRScanner,
+    DbProvider
   ]
 })
 export class AppModule {}

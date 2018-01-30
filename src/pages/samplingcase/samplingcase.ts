@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { IonicPage, NavController, NavParams } from 'ionic-angular';
 import { LoginPage } from '../login/login';
 import { TakeoutlistPage } from '../takeoutlist/takeoutlist';
+import { TakeinlistPage } from '../takeinlist/takeinlist';
 
 /**
  * Generated class for the SamplingcasePage page.
@@ -36,10 +37,12 @@ export class SamplingcasePage {
   }
   takeout() {
     this.navCtrl.push(TakeoutlistPage, {
-      item: this.selectedItemNo
+      itemNo: this.selectedItemNo
     });
   }
   takein() {
-
+    this.navCtrl.push(TakeinlistPage, {
+      itemNo: this.selectedItemNo
+    });
   }
 }

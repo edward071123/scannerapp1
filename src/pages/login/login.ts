@@ -41,7 +41,7 @@ export class LoginPage {
           console.log('login success');
           localStorage.setItem('account', this.userData.account);
           localStorage.setItem('token', this.resposeData.token);
-          this.navCtrl.push(HomePage);
+          this.navCtrl.setRoot(HomePage);
         } else {
           console.log(this.resposeData.errmsg);
           this.presentToast("Please give valid username and password");
