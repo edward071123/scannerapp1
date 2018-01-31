@@ -105,21 +105,48 @@ export class TakeoutlistPage {
     confirm.present();
   }
   sendSamplingActivity() {
-
-    for (let samplingList of this.samplingLists) {
-      this.restProvider.sendSamplingActivity(this.selectedCaseNo, samplingList.samplingno, "take_out")
-        .then((sendResult) => {
-          return this.dbProvider.deleteTakeOutListRow(samplingList.id);
-        })
-        .then((deleteResult) => {
-          console.log(samplingList.samplingno + " ok!");
-        })
-        .catch(function (error) {
-          console.log(samplingList.samplingno + " 攜出失敗!");
-          console.log(error);
-        });
-      
-    }
+    let getNowDate = new Date().toISOString().slice(0, 10);
+    this.restProvider.getSamplingActivityList(this.selectedCaseNo,  "take_out")
+      .then((activityListResult) => {
+        for (let samplingList of this.samplingLists) {
+          let sendCheck = true;
+          for (var actList in activityListResult) {
+            //console.log(activityListResult[actList]['saquipment_no'] + "--" + activityListResult[actList]['action_date']);
+            if (activityListResult[actList]['saquipment_no'] == samplingList.samplingno && activityListResult[actList]['action_date'] == getNowDate) {
+              sendCheck = false;
+              break;
+            }
+          }
+          if (sendCheck) {
+            this.restProvider.sendSamplingActivity(this.selectedCaseNo, samplingList.samplingno, "take_out")
+              .then((sendResult) => {
+                return this.dbProvider.deleteTakeOutListRow(samplingList.id);
+              })
+              .then((deleteResult) => {
+                console.log(samplingList.samplingno + " ok!");
+              })
+              .catch(function (error) {
+                console.log(samplingList.samplingno + " 攜出失敗!");
+                console.log(error);
+              });
+          } else {
+            this.dbProvider.deleteTakeOutListRow(samplingList.id)
+              .then((deleteResult) => {
+                console.log(samplingList.samplingno + " 重複攜出");
+              })
+              .catch(function (error) {
+                console.log(samplingList.samplingno + " 攜出失敗!");
+                console.log(error);
+              });
+          }
+         
+        }
+      })
+      .catch(function (error) {
+        console.log("get sampling activity list error ");
+        console.log(error);
+      });
+    
     alert('攜出成功 將轉跳案件清單');
     this.navCtrl.setRoot(HomePage);
   }

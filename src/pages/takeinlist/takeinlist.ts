@@ -86,57 +86,54 @@ export class TakeinlistPage {
     confirm.present();
   };
   sendSamplingActivity() {
+    let getNowDate = new Date().toISOString().slice(0, 10);
+    this.restProvider.getSamplingActivityList(this.selectedCaseNo, "take_in")
+      .then((activityListResult) => {
+        for (let i = 0; i < sLen; i++) {
+          let getSampling = this.selectedSamplingLists[i];
+          let sendCheck = true;
+          for (var actList in activityListResult) {
+            //console.log(activityListResult[actList]['saquipment_no'] + "--" + activityListResult[actList]['action_date']);
+            if (activityListResult[actList]['saquipment_no'] == getSampling && activityListResult[actList]['action_date'] == getNowDate) {
+              sendCheck = false;
+              break;
+            }
+          }
+          if (sendCheck) { 
+            this.restProvider.sendSamplingActivity(this.selectedCaseNo, getSampling, "take_in")
+              .then((sendResult) => {
+                return this.dbProvider.deleteTakeInListRow(this.userAccount, this.selectedCaseNo, getSampling);
+              })
+              .then((deleteResult) => {
+                console.log(deleteResult);
+                console.log(getSampling + " ok!");
+              })
+              .catch(function (error) {
+                console.log(getSampling + " 攜入失敗!");
+                console.log(error);
+              });
+          } else {
+            this.dbProvider.deleteTakeInListRow(this.userAccount, this.selectedCaseNo, getSampling)
+              .then((deleteResult) => {
+                console.log(deleteResult);
+                console.log(getSampling + " 重複攜入");
+              })
+              .catch(function (error) {
+                console.log(getSampling + " 攜入失敗!");
+                console.log(error);
+              });
+          }
+        }
+      })
+      .catch(function (error) {
+        console.log("get sampling activity list error ");
+        console.log(error);
+      });
     let sLen = this.selectedSamplingLists.length;
 
-    for (let i = 0; i < sLen; i++) {
-      console.log(this.selectedSamplingLists[i]);
-      let getSampling = this.selectedSamplingLists[i];
-      this.restProvider.sendSamplingActivity(this.selectedCaseNo, getSampling, "take_in")
-        .then((sendResult) => {
-          return this.dbProvider.deleteTakeInListRow(this.userAccount, this.selectedCaseNo, getSampling);
-        })
-        .then((deleteResult) => {
-          console.log(deleteResult);
-          console.log(getSampling + " ok!");
-        })
-        .catch(function (error) {
-          console.log(getSampling + " 攜入失敗!");
-          console.log(error);
-        });
-    }
+   
     alert('攜入成功 將轉跳案件清單');
     this.navCtrl.setRoot(HomePage);
-      // this.restProvider.sendSamplingActivity(this.selectedCaseNo, element, "take_in")
-      //   .then((sendResult) => {
-      //     return this.dbProvider.deleteTakeInListRow(this.userAccount, this.selectedCaseNo, element);
-      //   })
-      //   .then((deleteResult) => {
-      //     console.log(deleteResult);
-      //     console.log(element + " ok!");
-      //   })
-      //   .catch(function (error) {
-      //     console.log(element + " 攜入失敗!");
-      //     console.log(error);
-      //   });
-     
-
-    // for (var x in this.selectedSamplingLists) {
-    //   console.log('qq:',this.selectedSamplingLists[x]);
-    //   this.restProvider.sendSamplingActivity(this.selectedCaseNo, this.selectedSamplingLists[x], "take_in")
-    //     .then((sendResult) => {
-    //       return this.dbProvider.deleteTakeInListRow(this.userAccount, this.selectedCaseNo, this.selectedSamplingLists[x]);
-    //     })
-    //     .then((deleteResult) => {
-    //       console.log(deleteResult);
-    //       console.log(this.selectedSamplingLists[x] + " ok!");
-    //     })
-    //     .catch(function (error) {
-    //       console.log(this.selectedSamplingLists[x] + " 攜入失敗!");
-    //       console.log(error);
-    //     });
-    // }
-    // alert('攜入成功 將轉跳案件清單');
-    // this.navCtrl.setRoot(HomePage);
   }
   presentToast(msg) {
     let toast = this.toastCtrl.create({

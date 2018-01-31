@@ -54,21 +54,57 @@ export class QrscannerPage {
           let scanSub = this.qrScanner.scan().subscribe((text: string) => {
             console.log(list);
             if (list.indexOf(text) > -1) {
-              //check if exist in db
-              this.dbProvider.checkTakeInOutRepeat(accoount, caseNo, text, type).then((result) => {
-                if (result != 0) {
-                  this.presentToast(text + "已在清單");
-                } else {
-                  return this.dbProvider.addSamplingTakeInOutDb(accoount, caseNo, text, type);
-                }
-              })
-                .then((result) => {
-                  this.presentToast(result);
-                })
-                .catch(function (error) {
-                  alert("發生錯誤");
-                  console.log(error);
-                });
+              if (type == "takeout") {
+                //check if exist in db
+                this.dbProvider.checkTakeInOutRepeat(accoount, caseNo, text, type)
+                  .then((result) => {
+                    if (result != 0) {
+                      this.presentToast(text + "已在清單");
+                      throw new Error('break this chain');
+                    } else {
+                      return this.dbProvider.addSamplingTakeInOutDb(accoount, caseNo, text, type);
+                    }
+                  })
+                  .then((result) => {
+                    this.presentToast(result);
+                  })
+                  .catch(function (error) {
+                    //alert("發生錯誤");
+                    console.log(error);
+                  });
+              } else {
+                this.restProvider.getSamplingActivityList(caseNo, "take_in")
+                  .then((activityListResult) => {
+                    let sendCheck = false;
+                    for (var actList in activityListResult) {
+                      if (activityListResult[actList]['saquipment_no'] == text) {
+                        sendCheck = true;
+                        break;
+                      }
+                    }
+                    if (sendCheck) {
+                      return this.dbProvider.checkTakeInOutRepeat(accoount, caseNo, text, type);
+                    } else {
+                      this.presentToast(text + "未在攜出清單內");
+                      throw new Error('break this chain');
+                    }
+                  })
+                  .then((checkResult) => {
+                    if (checkResult != 0) {
+                      this.presentToast(text + "已在清單");
+                      throw new Error('break this chain');
+                    } else {
+                      return this.dbProvider.addSamplingTakeInOutDb(accoount, caseNo, text, type);
+                    }
+                  })
+                  .then((addResult) => {
+                    this.presentToast(addResult);
+                  })
+                  .catch(function (error) {
+                    //alert("發生錯誤");
+                    console.log(error);
+                  });
+              }
             } else {
               this.presentToast(text+"無此設備");
             }
@@ -86,7 +122,6 @@ export class QrscannerPage {
               //alert(data.showing);
             }, err => {
               alert(err);
-
             });
           
           // wait for user to scan something, then the observable callback will be called
