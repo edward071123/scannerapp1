@@ -5,7 +5,8 @@ import { QrscannerPage } from '../qrscanner/qrscanner';
 import { HomePage } from '../home/home';
 
 import { RestProvider } from "../../providers/rest/rest";
-import { DbProvider } from "../../providers/db/db";
+import { DatabaseProvider } from './../../providers/database/database';
+
 /**
  * Generated class for the TakeoutlistPage page.
  *
@@ -27,25 +28,30 @@ export class TakeoutlistPage {
     public navCtrl: NavController,
     public navParams: NavParams,
     public restProvider: RestProvider,
-    public dbProvider: DbProvider,
+    private databaseprovider: DatabaseProvider,
     private toastCtrl: ToastController,
     public alertCtrl: AlertController) {
     console.log('ionViewDidLoad TakeoutlistPage');
     this.selectedCaseNo = navParams.get('itemNo');
     this.userAccount = localStorage.getItem("account");
   }
-  ionViewWillEnter() {
-    this.dbProvider.getTakeOutList(this.userAccount, this.selectedCaseNo)
-      .then((result) => {
+  loadSamplingData() {
+    this.databaseprovider.getTakeOutList(this.userAccount, this.selectedCaseNo)
+      .then(result => {
         this.samplingLists = result;
         this.samplingListsCount = this.samplingLists.length;
-      })
-      .catch(function (error) {
-        this.presentToast("發生錯誤 重整畫面中");
-        this.ionViewWillEnter();
-        console.log(error);
+        //console.log(this.samplingLists);
       });
   }
+  ionViewWillEnter() {
+    this.databaseprovider.getDatabaseState().subscribe(rdy => {
+      if (rdy) {
+        this.loadSamplingData();
+      } 
+    })
+  }
+
+    
   deleteData(rowId) {
     let confirm = this.alertCtrl.create({
       title: '注意',
@@ -60,13 +66,18 @@ export class TakeoutlistPage {
         {
           text: '確定',
           handler: () => {
-            this.dbProvider.deleteTakeOutListRow(rowId).then((result) => {
-              this.presentToast(result);
-              this.ionViewWillEnter();
-            }, (error) => {
-              console.log(error);
-              this.presentToast("攜出清單單項刪除失敗");
-            });
+            this.databaseprovider.deleteTakeOutListRow(rowId)
+              .then((result) => {
+                if (result == 1) {
+                  this.presentToast("攜出單項刪除成功");
+                  this.ionViewWillEnter();
+                }else {
+                  this.presentToast("error: 1084");
+                  throw new Error('break this chain');
+                }
+              }, (error) => {
+                console.log(error);
+              });
           }
         }
       ]
@@ -98,6 +109,7 @@ export class TakeoutlistPage {
           text: '確定',
           handler: () => {
             this.sendSamplingActivity();
+            confirm.dismiss();
           }
         }
       ]
@@ -120,26 +132,37 @@ export class TakeoutlistPage {
           if (sendCheck) {
             this.restProvider.sendSamplingActivity(this.selectedCaseNo, samplingList.samplingno, "take_out")
               .then((sendResult) => {
-                return this.dbProvider.deleteTakeOutListRow(samplingList.id);
+                if (sendResult == 1)
+                  return this.databaseprovider.deleteTakeOutListRow(samplingList.rowid);
+                else
+                  this.presentToast("error: 1083");
+                  throw new Error('break this chain');
               })
               .then((deleteResult) => {
-                console.log(samplingList.samplingno + " ok!");
+                if (deleteResult == 1) {
+                  console.log(samplingList.samplingno + " ok!");
+                } else {
+                  this.presentToast("error: 1084");
+                  throw new Error('break this chain');
+                }
               })
               .catch(function (error) {
-                console.log(samplingList.samplingno + " 攜出失敗!");
                 console.log(error);
               });
           } else {
-            this.dbProvider.deleteTakeOutListRow(samplingList.id)
-              .then((deleteResult) => {
-                console.log(samplingList.samplingno + " 重複攜出");
-              })
-              .catch(function (error) {
-                console.log(samplingList.samplingno + " 攜出失敗!");
+            console.log(sendCheck);
+            this.databaseprovider.deleteTakeOutListRow(samplingList.rowid)
+              .then((result) => {
+                if (result == 1) {
+                  console.log(samplingList.samplingno + " 重複攜出");
+                } else {
+                  this.presentToast("error: 1084");
+                  throw new Error('break this chain');
+                }
+              }, (error) => {
                 console.log(error);
               });
           }
-         
         }
       })
       .catch(function (error) {

@@ -78,10 +78,10 @@ export class RestProvider {
       headers.append('Authorization', userToken);
       this.http.post(sendUrl, {} ,{ headers: headers }).
         subscribe(res => {
-          resolve(res.json());
+          resolve(1);
         }, (err) => {
           console.log("send sampling activity api erro :", err);
-          reject(err);
+          reject(0);
         });
     });
   }

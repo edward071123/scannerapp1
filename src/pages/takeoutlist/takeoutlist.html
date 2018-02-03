@@ -17,7 +17,7 @@
   <ion-list>
     <ion-item *ngFor="let samplingList of samplingLists; let i=index">
       <span>{{samplingList.samplingno}}</span>
-      <button ion-button item-end color="danger" (click)="deleteData(samplingList.id)">
+      <button ion-button item-end color="danger" (click)="deleteData(samplingList.rowid)">
         <ion-icon name="trash"></ion-icon>
       </button>
     </ion-item>

@@ -35,7 +35,7 @@ export class HomePage {
   getAllData() { 
     this.restProvider.allSamplingCaseList().then((result) => {
       this.expenses = result;
-      console.log(this.expenses);
+      //console.log(this.expenses);
     }, (err) => {
       console.log("get Sampling Case error");
     });

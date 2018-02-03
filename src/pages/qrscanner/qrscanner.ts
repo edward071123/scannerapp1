@@ -1,8 +1,9 @@
 import { Component } from '@angular/core';
 import { IonicPage, NavController, ToastController, NavParams, ViewController } from 'ionic-angular';
 import { QRScanner, QRScannerStatus } from '@ionic-native/qr-scanner';
-import { DbProvider } from "../../providers/db/db";
+// import { DbProvider } from "../../providers/db/db";
 import { RestProvider } from "../../providers/rest/rest";
+import { DatabaseProvider } from './../../providers/database/database';
 /**
  * Generated class for the QrscannerPage page.
  *
@@ -21,19 +22,20 @@ export class QrscannerPage {
   userAccount: any;
   samplingLists: any = [];
   constructor(public navCtrl: NavController,
-                      public navParams: NavParams,
-                      public qrScanner: QRScanner,
-                      public dbProvider: DbProvider,
-                      public restProvider: RestProvider,
-                      public viewCtrl: ViewController,
-                      private toastCtrl: ToastController) {
+    public navParams: NavParams,
+    public qrScanner: QRScanner,
+    public databaseprovider: DatabaseProvider,
+    public restProvider: RestProvider,
+    public viewCtrl: ViewController,
+    private toastCtrl: ToastController) {
     this.getType = navParams.get('type');
     this.userAccount = localStorage.getItem("account");
     this.selectedCaseNo = navParams.get('case');
+    console.log(this.getType + "-" + this.userAccount + "-" + this.selectedCaseNo);
     this.restProvider.getServerSamplingList()
       .then((result) => {
         this.samplingLists = result;
-        this.qrscanner(this.userAccount, this.selectedCaseNo, this.getType, this.samplingLists);
+        this.qrscanner();
       })
       .catch(function (error) {
         this.presentToast("發生錯誤 重整畫面中");
@@ -41,39 +43,48 @@ export class QrscannerPage {
         console.log(error);
       });
   }
-
-  qrscanner(accoount,caseNo, type, list) {
-    
+  qrscanner() { 
+    console.log(this.userAccount);
     // Optionally request the permission early
     this.qrScanner.prepare()
       .then((status: QRScannerStatus) => {
         if (status.authorized) {
           // camera permission was granted
-          //alert('authorized');
+          console.log('authorized');
           // start scanning
           let scanSub = this.qrScanner.scan().subscribe((text: string) => {
-            console.log(list);
-            if (list.indexOf(text) > -1) {
-              if (type == "takeout") {
+            // stop scanning
+            scanSub.unsubscribe();
+
+            if (this.samplingLists.indexOf(text) > -1) {
+              if (this.getType == "takeout") { 
                 //check if exist in db
-                this.dbProvider.checkTakeInOutRepeat(accoount, caseNo, text, type)
-                  .then((result) => {
-                    if (result != 0) {
+                this.databaseprovider.checkTakeInOutRepeat(this.userAccount, this.selectedCaseNo, text, this.getType)
+                  .then(result => {
+                    if (result == 1) {
                       this.presentToast(text + "已在清單");
                       throw new Error('break this chain');
+                    } else if (result == 0) {
+                      return this.databaseprovider.addSamplingTakeInOutDb(this.userAccount, this.selectedCaseNo, text, this.getType);
                     } else {
-                      return this.dbProvider.addSamplingTakeInOutDb(accoount, caseNo, text, type);
+                      this.presentToast("error: 1081");
+                      throw new Error('break this chain');
                     }
                   })
                   .then((result) => {
-                    this.presentToast(result);
+                    if (result == 1)
+                      this.presentToast(text + "儲存成功");
+                    else {
+                      this.presentToast("error: 1082");
+                      throw new Error('break this chain');
+                    }
                   })
                   .catch(function (error) {
                     //alert("發生錯誤");
                     console.log(error);
                   });
               } else {
-                this.restProvider.getSamplingActivityList(caseNo, "take_in")
+                this.restProvider.getSamplingActivityList(this.selectedCaseNo, "take_out")
                   .then((activityListResult) => {
                     let sendCheck = false;
                     for (var actList in activityListResult) {
@@ -83,22 +94,30 @@ export class QrscannerPage {
                       }
                     }
                     if (sendCheck) {
-                      return this.dbProvider.checkTakeInOutRepeat(accoount, caseNo, text, type);
+                      return this.databaseprovider.checkTakeInOutRepeat(this.userAccount, this.selectedCaseNo, text, this.getType);
                     } else {
                       this.presentToast(text + "未在攜出清單內");
                       throw new Error('break this chain');
                     }
                   })
                   .then((checkResult) => {
-                    if (checkResult != 0) {
+                    if (checkResult == 1) {
                       this.presentToast(text + "已在清單");
                       throw new Error('break this chain');
+                    } else if (checkResult == 0) {
+                      return this.databaseprovider.addSamplingTakeInOutDb(this.userAccount, this.selectedCaseNo, text, this.getType);
                     } else {
-                      return this.dbProvider.addSamplingTakeInOutDb(accoount, caseNo, text, type);
+                      this.presentToast("error: 1081");
+                      throw new Error('break this chain');
                     }
                   })
                   .then((addResult) => {
-                    this.presentToast(addResult);
+                    if (addResult == 1)
+                      this.presentToast(text + "儲存成功");
+                    else {
+                      this.presentToast("error: 1082");
+                      throw new Error('break this chain');
+                    }
                   })
                   .catch(function (error) {
                     //alert("發生錯誤");
@@ -106,40 +125,31 @@ export class QrscannerPage {
                   });
               }
             } else {
-              this.presentToast(text+"無此設備");
+              this.presentToast(text + "無此設備");
             }
-            scanSub.unsubscribe(); // stop scanning
-            this.qrscanner(accoount, caseNo, type, list);
-
+            setTimeout(() => this.qrscanner(), 2000);
           });
-
-          //this.qrScanner.resumePreview();
-
+          
           // show camera preview
           window.document.querySelector('ion-app').classList.add('transparent-body');
-          this.qrScanner.show()
-            .then((data: QRScannerStatus) => {
-              //alert(data.showing);
-            }, err => {
-              alert(err);
-            });
-          
+          this.qrScanner.show();
+
           // wait for user to scan something, then the observable callback will be called
         } else if (status.denied) {
-          alert('denied');
+          console.log('denied');
           // camera permission was permanently denied
           // you must use QRScanner.openSettings() method to guide the user to the settings page
           // then they can grant the permission from there
         } else {
           // permission was denied, but not permanently. You can ask for permission again at a later time.
-          alert('else');
+          console.log('else');
         }
       })
       .catch((e: any) => {
         alert('Error is' + e);
       });
-
   }
+
   presentToast(msg) {
     let toast = this.toastCtrl.create({
       message: msg,
@@ -147,7 +157,12 @@ export class QrscannerPage {
     });
     toast.present();
   }
+  ionViewWillUnload() {
+    this.qrScanner.destroy();
+    this.viewCtrl.dismiss();
+  }
   public dismiss(): void {
+    this.qrScanner.destroy();
     this.viewCtrl.dismiss();
   }
 }

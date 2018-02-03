@@ -1,0 +1,14 @@
+#errormsg
+
+1801 :takeOutList checkTakeInOutRepeat Error
+
+1802 :takeOutList addSamplingTakeInOutDb Error
+
+1803 :takeOutList sendSamplingActivity Error
+
+1804 :takeOutList deleteTakeOutListRow Error
+
+1805 :takeInList deleteTakeInListRow Error
+
+1806 :account db sql Error
+

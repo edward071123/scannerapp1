@@ -5,7 +5,7 @@ import { QrscannerPage } from '../qrscanner/qrscanner';
 import { HomePage } from '../home/home';
 
 import { RestProvider } from "../../providers/rest/rest";
-import { DbProvider } from "../../providers/db/db";
+import { DatabaseProvider } from './../../providers/database/database';
 /**
  * Generated class for the TakeinlistPage page.
  *
@@ -29,27 +29,33 @@ export class TakeinlistPage {
     public navCtrl: NavController,
     public navParams: NavParams,
     public restProvider: RestProvider,
-    public dbProvider: DbProvider,
+    private databaseprovider: DatabaseProvider,
     private toastCtrl: ToastController,
     public alertCtrl: AlertController) {
     console.log('ionViewDidLoad TakeinlistPage');
     this.selectedCaseNo = navParams.get('itemNo');
     this.userAccount = localStorage.getItem("account");
   }
-
+  loadSamplingData() {
+    this.databaseprovider.getTakeInList(this.userAccount, this.selectedCaseNo)
+      .then(result => {
+        this.selectedSamplingLists = result;
+        this.selectedSamplingListsCount = this.selectedSamplingLists.length;
+        //console.log(this.samplingLists);
+      });
+  }
   ionViewWillEnter() {
     this.restProvider.getSamplingActivityList(this.selectedCaseNo, "take_out")
       .then((listResult) => {
         this.samplingLists = listResult;
         this.samplingListsCount = this.samplingLists.length;
-        return this.dbProvider.getTakeInList(this.userAccount, this.selectedCaseNo);
-      })
-      .then((getDblistResult) => {
-        this.selectedSamplingLists = getDblistResult;
-        this.selectedSamplingListsCount = this.selectedSamplingLists.length;
+        this.databaseprovider.getDatabaseState().subscribe(rdy => {
+          if (rdy) {
+            this.loadSamplingData();
+          }
+        })
       })
       .catch(function (error) {
-        this.presentToast("發生錯誤 重整畫面中");
         this.ionViewWillEnter();
         console.log(error);
       });
@@ -102,21 +108,31 @@ export class TakeinlistPage {
           if (sendCheck) { 
             this.restProvider.sendSamplingActivity(this.selectedCaseNo, getSampling, "take_in")
               .then((sendResult) => {
-                return this.dbProvider.deleteTakeInListRow(this.userAccount, this.selectedCaseNo, getSampling);
+                return this.databaseprovider.deleteTakeInListRow(this.userAccount, this.selectedCaseNo, getSampling);
               })
               .then((deleteResult) => {
-                console.log(deleteResult);
-                console.log(getSampling + " ok!");
+                if (deleteResult == 1) {
+                  console.log(deleteResult);
+                  console.log(getSampling + " ok!");
+                } else {
+                  this.presentToast("error: 1085");
+                  throw new Error('break this chain');
+                }
               })
               .catch(function (error) {
                 console.log(getSampling + " 攜入失敗!");
                 console.log(error);
               });
           } else {
-            this.dbProvider.deleteTakeInListRow(this.userAccount, this.selectedCaseNo, getSampling)
+            this.databaseprovider.deleteTakeInListRow(this.userAccount, this.selectedCaseNo, getSampling)
               .then((deleteResult) => {
-                console.log(deleteResult);
-                console.log(getSampling + " 重複攜入");
+                if (deleteResult == 1) {
+                  console.log(deleteResult);
+                  console.log(getSampling + " 重複攜入");
+                } else {
+                  this.presentToast("error: 1085");
+                  throw new Error('break this chain');
+                }
               })
               .catch(function (error) {
                 console.log(getSampling + " 攜入失敗!");
