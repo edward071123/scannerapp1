@@ -40,6 +40,7 @@ export class LoginPage {
         if (this.resposeData.errno == 0) {
           console.log('login success');
           localStorage.setItem('account', this.userData.account);
+          localStorage.setItem('userId', this.resposeData.user_id);
           localStorage.setItem('token', this.resposeData.token);
           this.navCtrl.setRoot(HomePage);
         } else {

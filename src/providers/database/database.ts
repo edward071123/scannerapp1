@@ -40,8 +40,8 @@ export class DatabaseProvider {
   }
 
   fillDatabase() {
-    let sql = 'CREATE TABLE IF NOT EXISTS takein(rowid INTEGER PRIMARY KEY, account TEXT, caseno TEXT, samplingno TEXT);';
-    sql += 'CREATE TABLE IF NOT EXISTS takeout(rowid INTEGER PRIMARY KEY, account TEXT, caseno TEXT, samplingno TEXT);';
+    let sql = 'CREATE TABLE IF NOT EXISTS takein(rowid INTEGER PRIMARY KEY, account TEXT, caseno TEXT, samplingno TEXT, modelno TEXT);';
+    sql += 'CREATE TABLE IF NOT EXISTS takeout(rowid INTEGER PRIMARY KEY, account TEXT, caseno TEXT, samplingno TEXT, modelno TEXT);';
     this.sqlitePorter.importSqlToDb(this.database, sql)
       .then(data => {
         this.databaseReady.next(true);
@@ -66,11 +66,20 @@ export class DatabaseProvider {
       return -1;
     });
   }
-  addSamplingTakeInOutDb(account, caseNo, sampling, type) {
+  addSamplingTakeInDb(account, caseNo, sampling, type) {
     let data = [account, caseNo, sampling];
-    let sqlStatement = 'INSERT INTO takeout (rowid,account,caseno,samplingno)  VALUES(NULL,?,?,?)';
-    if (type == "takein")
-      sqlStatement = 'INSERT INTO takein (rowid,account,caseno,samplingno)  VALUES(NULL,?,?,?)';
+    let sqlStatement = 'INSERT INTO takein (rowid,account,caseno,samplingno)  VALUES(NULL,?,?,?)';
+    return this.database.executeSql(sqlStatement, data).then(res => {
+      console.log(res);
+      return 1;
+    }, err => {
+      console.log(err);
+      return 0;
+    });
+  }
+  addSamplingTakeOutDb(account, caseNo, sampling, type, model) {
+    let data = [account, caseNo, sampling, model];
+    let sqlStatement = 'INSERT INTO takeout (rowid,account,caseno,samplingno,modelno)  VALUES(NULL,?,?,?,?)';
     return this.database.executeSql(sqlStatement, data).then(res => {
       console.log(res);
       return 1;
@@ -88,7 +97,8 @@ export class DatabaseProvider {
         for (var i = 0; i < res.rows.length; i++) {
           samplingsList.push({
             rowid: res.rows.item(i).rowid,
-            samplingno: res.rows.item(i).samplingno
+            samplingno: res.rows.item(i).samplingno,
+            modelno: res.rows.item(i).modelno
           });
         }
       }

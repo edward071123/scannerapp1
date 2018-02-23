@@ -21,6 +21,7 @@ export class QrscannerPage {
   selectedCaseNo: any;
   userAccount: any;
   samplingLists: any = [];
+  modelLists: any = [];
   constructor(public navCtrl: NavController,
     public navParams: NavParams,
     public qrScanner: QRScanner,
@@ -34,7 +35,8 @@ export class QrscannerPage {
     console.log(this.getType + "-" + this.userAccount + "-" + this.selectedCaseNo);
     this.restProvider.getServerSamplingList()
       .then((result) => {
-        this.samplingLists = result;
+        this.samplingLists = result[0];
+        this.modelLists = result[1];
         this.qrscanner();
       })
       .catch(function (error) {
@@ -65,7 +67,7 @@ export class QrscannerPage {
                       this.presentToast(text + "已在清單");
                       throw new Error('break this chain');
                     } else if (result == 0) {
-                      return this.databaseprovider.addSamplingTakeInOutDb(this.userAccount, this.selectedCaseNo, text, this.getType);
+                      return this.databaseprovider.addSamplingTakeOutDb(this.userAccount, this.selectedCaseNo, text, this.getType, this.modelLists[this.samplingLists.indexOf(text)]);
                     } else {
                       this.presentToast("error: 1081");
                       throw new Error('break this chain');
@@ -84,7 +86,7 @@ export class QrscannerPage {
                     console.log(error);
                   });
               } else {
-                this.restProvider.getSamplingActivityList(this.selectedCaseNo, "take_out")
+                this.restProvider.getSamplingActivityList(this.selectedCaseNo, "taken_out")
                   .then((activityListResult) => {
                     let sendCheck = false;
                     for (var actList in activityListResult) {
@@ -105,7 +107,7 @@ export class QrscannerPage {
                       this.presentToast(text + "已在清單");
                       throw new Error('break this chain');
                     } else if (checkResult == 0) {
-                      return this.databaseprovider.addSamplingTakeInOutDb(this.userAccount, this.selectedCaseNo, text, this.getType);
+                      return this.databaseprovider.addSamplingTakeInDb(this.userAccount, this.selectedCaseNo, text, this.getType);
                     } else {
                       this.presentToast("error: 1081");
                       throw new Error('break this chain');
@@ -127,7 +129,7 @@ export class QrscannerPage {
             } else {
               this.presentToast(text + "無此設備");
             }
-            setTimeout(() => this.qrscanner(), 2000);
+            setTimeout(() => this.qrscanner(), 700);
           });
           
           // show camera preview
