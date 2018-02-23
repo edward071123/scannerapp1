@@ -2,8 +2,8 @@ import { Component } from '@angular/core';
 import { IonicPage, NavController, NavParams, ToastController, AlertController  } from 'ionic-angular';
 
 import { QrscannerPage } from '../qrscanner/qrscanner';
-import { HomePage } from '../home/home';
-
+// import { HomePage } from '../home/home';
+import { FinishPage } from '../finish/finish';
 import { RestProvider } from "../../providers/rest/rest";
 import { DatabaseProvider } from './../../providers/database/database';
 /**
@@ -45,7 +45,7 @@ export class TakeinlistPage {
       });
   }
   ionViewWillEnter() {
-    this.restProvider.getSamplingActivityList(this.selectedCaseNo, "take_out")
+    this.restProvider.getSamplingActivityList(this.selectedCaseNo, "taken_out")
       .then((listResult) => {
         this.samplingLists = listResult;
         this.samplingListsCount = this.samplingLists.length;
@@ -93,7 +93,8 @@ export class TakeinlistPage {
   };
   sendSamplingActivity() {
     let getNowDate = new Date().toISOString().slice(0, 10);
-    this.restProvider.getSamplingActivityList(this.selectedCaseNo, "take_in")
+    let getFailure = 0;
+    this.restProvider.getSamplingActivityList(this.selectedCaseNo, "taken_in")
       .then((activityListResult) => {
         for (let i = 0; i < sLen; i++) {
           let getSampling = this.selectedSamplingLists[i];
@@ -108,7 +109,15 @@ export class TakeinlistPage {
           if (sendCheck) { 
             this.restProvider.sendSamplingActivity(this.selectedCaseNo, getSampling, "take_in")
               .then((sendResult) => {
-                return this.databaseprovider.deleteTakeInListRow(this.userAccount, this.selectedCaseNo, getSampling);
+                let resposeData: any;
+                resposeData = sendResult;
+                if (resposeData.errno == 0)
+                  return this.databaseprovider.deleteTakeInListRow(this.userAccount, this.selectedCaseNo, getSampling);
+                else {
+                  getFailure++;
+                  this.presentToast("error: 1083");
+                  throw new Error('break this chain');
+                }
               })
               .then((deleteResult) => {
                 if (deleteResult == 1) {
@@ -148,8 +157,9 @@ export class TakeinlistPage {
     let sLen = this.selectedSamplingLists.length;
 
    
-    alert('攜入成功 將轉跳案件清單');
-    this.navCtrl.setRoot(HomePage);
+    // alert('攜入成功 將轉跳案件清單');
+    // this.navCtrl.setRoot(HomePage);
+    this.navCtrl.push(FinishPage, { itemType: "takein", failureCount: getFailure });
   }
   presentToast(msg) {
     let toast = this.toastCtrl.create({

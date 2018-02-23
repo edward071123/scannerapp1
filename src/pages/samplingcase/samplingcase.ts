@@ -20,6 +20,7 @@ export class SamplingcasePage {
 
   selectedItemNo: any;
   selectedItemName: any;
+  selectedItemSubName: any;
   constructor(public navCtrl: NavController, public navParams: NavParams) {
     console.log(navParams);
     let userAccount = localStorage.getItem("account");
@@ -29,6 +30,7 @@ export class SamplingcasePage {
     } else {
       this.selectedItemNo = navParams.get('itemNo');
       this.selectedItemName = navParams.get('itemName');
+      this.selectedItemSubName = navParams.get('itemSubName');
     }
   }
 

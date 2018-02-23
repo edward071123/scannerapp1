@@ -3,18 +3,18 @@
     <button ion-button menuToggle>
       <ion-icon name="menu"></ion-icon>
     </button>
-    <ion-title>Home</ion-title>
+    <ion-title>案件列表</ion-title>
   </ion-navbar>
 </ion-header>
 
 <ion-content padding>
-  <h2>Saquipment Case List</h2>
+  <h2>選擇案件</h2>
   <ion-list>
-    <ion-item-sliding *ngFor="let expense of expenses; let i=index " (click)="samplingCaseTapped($event,expense.case_no,expense.examined_institute)">
+    <ion-item-sliding *ngFor="let expense of expenses; let i=index " (click)="samplingCaseTapped($event,expense.case_no,expense.customer,expense.examined_institute)">
       <ion-item nopadding>
         <p>
           <span>{{expense.case_no}}</span>
-          <br> {{expense.examined_institute}}
+          <br> {{expense.customer+"-"+expense.examined_institute}}
         </p>
       </ion-item>
     </ion-item-sliding>

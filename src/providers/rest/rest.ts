@@ -35,12 +35,15 @@ export class RestProvider {
         });
     });
   }
-  allSamplingCaseList() {
+  allSamplingCaseList(userId) {
     return new Promise((resolve, reject) => {
+      let sendUrl = this.samplingCaseListUrl + "&examiner_user_id=" + userId;
+      //let sendUrl = this.samplingCaseListUrl;
+      console.log(sendUrl);
       let headers = new Headers();
       let userToken = 'Bearer ' + localStorage.getItem("token");
       headers.append('Authorization', userToken);
-      this.http.get(this.apiUrl + this.samplingCaseListUrl, { headers: headers }).
+      this.http.get(this.apiUrl + sendUrl, { headers: headers }).
         subscribe(res => {
           resolve(res.json());
         }, (err) => {
@@ -59,10 +62,15 @@ export class RestProvider {
         subscribe(res => {
           let getSamplingLists = res.json();
           let SamplingLists = [];
+          let modelLists = [];
+          let all = [];
           for (var i = 0; i < getSamplingLists.length; i++) {
             SamplingLists.push(getSamplingLists[i].no);
+            modelLists.push(getSamplingLists[i].name);
           }
-          resolve(SamplingLists);
+          all.push(SamplingLists);
+          all.push(modelLists);
+          resolve(all);
         }, (err) => {
           console.log("get sampling activity list api erro :", err);
           reject(err);
@@ -72,23 +80,23 @@ export class RestProvider {
   sendSamplingActivity(samplingCaseNo, saquipmentNo, action) {
     return new Promise((resolve, reject) => {
       let sendUrl = this.apiUrl + this.sendSamplingActivityUrl;
-      sendUrl += "saquipment_no=" + saquipmentNo + "&sampling_case_no=" + samplingCaseNo + "&action=" + action;
+      sendUrl += "saquipment_no=" + saquipmentNo + "&sampling_case_no=" + samplingCaseNo + "&action=" + action + "&log_method=phone";
       let headers = new Headers();
       let userToken = 'Bearer ' + localStorage.getItem("token");
       headers.append('Authorization', userToken);
       this.http.post(sendUrl, {} ,{ headers: headers }).
         subscribe(res => {
-          resolve(1);
+          resolve(res.json());
         }, (err) => {
           console.log("send sampling activity api erro :", err);
-          reject(0);
+          reject(err);
         });
     });
   }
   getSamplingActivityList(samplingCaseNo, action) {
     return new Promise((resolve, reject) => {
       let sendUrl = this.apiUrl + this.getSamplingActivityListUrl;
-      sendUrl += "sampling_case_no=" + samplingCaseNo + "&action=" + action;
+      sendUrl += "sampling_case_no=" + samplingCaseNo + "&filter=" + action;
       let headers = new Headers();
       let userToken = 'Bearer ' + localStorage.getItem("token");
       headers.append('Authorization', userToken);

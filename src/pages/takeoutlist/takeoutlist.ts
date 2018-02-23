@@ -2,7 +2,8 @@ import { Component } from '@angular/core';
 import { IonicPage, NavController, NavParams, ToastController, AlertController } from 'ionic-angular';
 
 import { QrscannerPage } from '../qrscanner/qrscanner';
-import { HomePage } from '../home/home';
+// import { HomePage } from '../home/home';
+import { FinishPage } from '../finish/finish';
 
 import { RestProvider } from "../../providers/rest/rest";
 import { DatabaseProvider } from './../../providers/database/database';
@@ -118,7 +119,8 @@ export class TakeoutlistPage {
   }
   sendSamplingActivity() {
     let getNowDate = new Date().toISOString().slice(0, 10);
-    this.restProvider.getSamplingActivityList(this.selectedCaseNo,  "take_out")
+    let getFailure = 0;
+    this.restProvider.getSamplingActivityList(this.selectedCaseNo,  "taken_out")
       .then((activityListResult) => {
         for (let samplingList of this.samplingLists) {
           let sendCheck = true;
@@ -132,11 +134,15 @@ export class TakeoutlistPage {
           if (sendCheck) {
             this.restProvider.sendSamplingActivity(this.selectedCaseNo, samplingList.samplingno, "take_out")
               .then((sendResult) => {
-                if (sendResult == 1)
+                let resposeData: any;
+                resposeData = sendResult;
+                if (resposeData.errno == 0)
                   return this.databaseprovider.deleteTakeOutListRow(samplingList.rowid);
-                else
+                else {
+                  getFailure++;
                   this.presentToast("error: 1083");
                   throw new Error('break this chain');
+                }
               })
               .then((deleteResult) => {
                 if (deleteResult == 1) {
@@ -169,9 +175,9 @@ export class TakeoutlistPage {
         console.log("get sampling activity list error ");
         console.log(error);
       });
-    
-    alert('攜出成功 將轉跳案件清單');
-    this.navCtrl.setRoot(HomePage);
+    //alert('攜出成功 將轉跳案件清單');
+    this.navCtrl.push(FinishPage, { itemType: "takeout", failureCount: getFailure});
+    //this.navCtrl.setRoot(HomePage);
   }
   presentToast(msg) {
     let toast = this.toastCtrl.create({

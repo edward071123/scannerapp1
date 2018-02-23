@@ -18,6 +18,7 @@ import { SamplingcasePage } from '../pages/samplingcase/samplingcase';
 import { TakeinlistPage } from '../pages/takeinlist/takeinlist';
 import { TakeoutlistPage } from '../pages/takeoutlist/takeoutlist';
 import { QrscannerPage } from '../pages/qrscanner/qrscanner';
+import { FinishPage } from '../pages/finish/finish';
 
 import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
@@ -30,7 +31,8 @@ import { SplashScreen } from '@ionic-native/splash-screen';
     SamplingcasePage,
     TakeinlistPage,
     TakeoutlistPage,
-    QrscannerPage
+    QrscannerPage,
+    FinishPage
   ],
   imports: [
     BrowserModule,
@@ -46,7 +48,8 @@ import { SplashScreen } from '@ionic-native/splash-screen';
     SamplingcasePage,
     TakeinlistPage,
     TakeoutlistPage,
-    QrscannerPage
+    QrscannerPage,
+    FinishPage
   ],
   providers: [
     StatusBar,

@@ -7,7 +7,7 @@
 <ion-header>
 
   <ion-navbar>
-    <ion-title>takeinlist (共{{samplingListsCount}}筆)</ion-title>
+    <ion-title>攜入列表 (共{{samplingListsCount}}筆)</ion-title>
   </ion-navbar>
 
 </ion-header>
@@ -23,7 +23,11 @@
 </ion-content>
 <ion-footer>
   <ion-toolbar>
-    <button ion-button (click)="qrscanner()" full>掃描QR碼</button>
-    <button ion-button (click)="takeinsend()" full>確定攜入({{selectedSamplingListsCount}}筆)</button>
+    <ion-grid>
+      <ion-row justify-content-between>
+        <ion-col col-6 ><button ion-button full (click)="qrscanner()" >掃描QR碼</button></ion-col>
+        <ion-col col-6><button ion-button full (click)="takeinsend()">確定攜入({{selectedSamplingListsCount}}筆)</button></ion-col>
+      </ion-row>
+    </ion-grid>
   </ion-toolbar>
 </ion-footer>

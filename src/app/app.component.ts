@@ -27,7 +27,7 @@ export class ScannerApp {
 
     // used for an example of ngFor and navigation
     this.pages = [
-      { title: 'Home', component: HomePage }
+      { title: '案件列表', component: HomePage }
     ];
 
   }
