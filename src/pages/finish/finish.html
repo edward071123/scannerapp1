@@ -8,9 +8,12 @@
 
 
 <ion-content padding>
-  <h2>{{title}}</h2>
-  <ion-list>
-      <span>失敗筆數 ：{{getFailureCount}}</span>
+  <ion-title><h2>{{title}}</h2></ion-title>
+  <div class="content-box"><h2>失敗筆數 ：{{getFailureCount}}</h2></div>
+  <div class="btn-box">
+    <ion-list>
       <button ion-button block large (click)="backHome()">返回案件清單</button>
-  </ion-list>
+    </ion-list>
+  </div>
+ 
 </ion-content>

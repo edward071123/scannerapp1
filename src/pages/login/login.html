@@ -1,17 +1,19 @@
-<ion-content padding>
-  <ion-list>
-
-    <ion-item>
-      <ion-label fixed>帳號</ion-label>
-      <ion-input type="text" value=""  [(ngModel)]="userData.account"></ion-input>
-    </ion-item>
-
-    <ion-item>
-      <ion-label fixed>密碼</ion-label>
-      <ion-input type="password" value=""  [(ngModel)]="userData.password"></ion-input>
-    </ion-item>
-
-    <button ion-button block color="primary" (click)="login()">登入</button>
-
-  </ion-list>
+<ion-content padding class="center">
+  <div class="login-box">
+    <ion-list>
+      <ion-item>
+        <ion-label fixed>帳號</ion-label>
+        <ion-input type="text" value="" [(ngModel)]="userData.account"></ion-input>
+      </ion-item>
+    
+      <ion-item>
+        <ion-label fixed>密碼</ion-label>
+        <ion-input type="password" value="" [(ngModel)]="userData.password"></ion-input>
+      </ion-item>
+    
+      <button ion-button block color="primary" (click)="login()">登入</button>
+    
+    </ion-list>
+  </div>
+  
 </ion-content>

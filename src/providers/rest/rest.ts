@@ -86,13 +86,14 @@ export class RestProvider {
       headers.append('Authorization', userToken);
       this.http.post(sendUrl, {} ,{ headers: headers }).
         subscribe(res => {
-          resolve(res.json());
+          resolve(res);
         }, (err) => {
           console.log("send sampling activity api erro :", err);
-          reject(err);
+          resolve(err);
         });
     });
   }
+
   getSamplingActivityList(samplingCaseNo, action) {
     return new Promise((resolve, reject) => {
       let sendUrl = this.apiUrl + this.getSamplingActivityListUrl;

@@ -25,6 +25,8 @@ export class TakeoutlistPage {
   samplingLists: any = [];
   samplingListsCount: any;
   userAccount: any;
+  getSendResult: any;
+  sendCount: any;
   constructor(
     public navCtrl: NavController,
     public navParams: NavParams,
@@ -117,67 +119,42 @@ export class TakeoutlistPage {
     });
     confirm.present();
   }
-  sendSamplingActivity() {
-    let getNowDate = new Date().toISOString().slice(0, 10);
+  async sendSamplingActivity() {
     let getFailure = 0;
-    this.restProvider.getSamplingActivityList(this.selectedCaseNo,  "taken_out")
-      .then((activityListResult) => {
-        for (let samplingList of this.samplingLists) {
-          let sendCheck = true;
-          for (var actList in activityListResult) {
-            //console.log(activityListResult[actList]['saquipment_no'] + "--" + activityListResult[actList]['action_date']);
-            if (activityListResult[actList]['saquipment_no'] == samplingList.samplingno && activityListResult[actList]['action_date'] == getNowDate) {
-              sendCheck = false;
-              break;
+    this.sendCount = 0;
+    for (let samplingList of this.samplingLists) { 
+      await this.restProvider.sendSamplingActivity(this.selectedCaseNo, samplingList.samplingno, "take_out")
+        .then((sendResult) => {
+          this.getSendResult = sendResult;
+          let getstatus = this.getSendResult.status;
+          let getBody = this.getSendResult._body;
+          if (getstatus == 200) {
+            getBody = JSON.parse(getBody);
+            if (getBody.errno == 0) {
+              return this.databaseprovider.deleteTakeOutListRow(samplingList.rowid);
+            } else {
+              getFailure++;
             }
-          }
-          if (sendCheck) {
-            this.restProvider.sendSamplingActivity(this.selectedCaseNo, samplingList.samplingno, "take_out")
-              .then((sendResult) => {
-                let resposeData: any;
-                resposeData = sendResult;
-                if (resposeData.errno == 0)
-                  return this.databaseprovider.deleteTakeOutListRow(samplingList.rowid);
-                else {
-                  getFailure++;
-                  this.presentToast("error: 1083");
-                  throw new Error('break this chain');
-                }
-              })
-              .then((deleteResult) => {
-                if (deleteResult == 1) {
-                  console.log(samplingList.samplingno + " ok!");
-                } else {
-                  this.presentToast("error: 1084");
-                  throw new Error('break this chain');
-                }
-              })
-              .catch(function (error) {
-                console.log(error);
-              });
           } else {
-            console.log(sendCheck);
-            this.databaseprovider.deleteTakeOutListRow(samplingList.rowid)
-              .then((result) => {
-                if (result == 1) {
-                  console.log(samplingList.samplingno + " 重複攜出");
-                } else {
-                  this.presentToast("error: 1084");
-                  throw new Error('break this chain');
-                }
-              }, (error) => {
-                console.log(error);
-              });
+            getFailure++;
           }
-        }
-      })
-      .catch(function (error) {
-        console.log("get sampling activity list error ");
-        console.log(error);
-      });
-    //alert('攜出成功 將轉跳案件清單');
-    this.navCtrl.push(FinishPage, { itemType: "takeout", failureCount: getFailure});
-    //this.navCtrl.setRoot(HomePage);
+        })
+        .then((deleteResult) => {
+          if (deleteResult == 1) {
+            console.log(samplingList.samplingno + " ok!");
+          }
+        })
+        .then(() => {
+          this.sendCount++;
+          this.goToFinish(getFailure);
+        })
+    }
+  }
+  goToFinish(getFailure) {
+    if (this.sendCount == this.samplingLists.length) {
+      console.log('done');
+      this.navCtrl.push(FinishPage, { itemType: "takeout", failureCount: getFailure });
+    }
   }
   presentToast(msg) {
     let toast = this.toastCtrl.create({

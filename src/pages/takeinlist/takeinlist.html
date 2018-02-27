@@ -16,7 +16,8 @@
 <ion-content padding>
   <ion-list>
     <ion-item *ngFor="let samplingList of samplingLists; let i=index" >
-      <span>{{samplingList.saquipment_no}}</span>
+      <span>{{samplingList.saquipment_no}}</span><br>
+      <span>{{samplingList.saquipment_name}}</span>
       <ion-icon name="checkmark-circle" item-right *ngIf="selectedSamplingLists.indexOf(samplingList.saquipment_no) > -1"></ion-icon>
     </ion-item>
   </ion-list>

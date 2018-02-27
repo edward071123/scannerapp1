@@ -25,6 +25,8 @@ export class TakeinlistPage {
   samplingListsCount: any;
   selectedSamplingLists: any = [];
   selectedSamplingListsCount: any;
+  getSendResult: any;
+  sendCount: any;
   constructor(
     public navCtrl: NavController,
     public navParams: NavParams,
@@ -91,75 +93,112 @@ export class TakeinlistPage {
     });
     confirm.present();
   };
-  sendSamplingActivity() {
-    let getNowDate = new Date().toISOString().slice(0, 10);
+  async sendSamplingActivity() {
+    //let getNowDate = new Date().toISOString().slice(0, 10);
     let getFailure = 0;
-    this.restProvider.getSamplingActivityList(this.selectedCaseNo, "taken_in")
-      .then((activityListResult) => {
-        for (let i = 0; i < sLen; i++) {
-          let getSampling = this.selectedSamplingLists[i];
-          let sendCheck = true;
-          for (var actList in activityListResult) {
-            //console.log(activityListResult[actList]['saquipment_no'] + "--" + activityListResult[actList]['action_date']);
-            if (activityListResult[actList]['saquipment_no'] == getSampling && activityListResult[actList]['action_date'] == getNowDate) {
-              sendCheck = false;
-              break;
-            }
-          }
-          if (sendCheck) { 
-            this.restProvider.sendSamplingActivity(this.selectedCaseNo, getSampling, "take_in")
-              .then((sendResult) => {
-                let resposeData: any;
-                resposeData = sendResult;
-                if (resposeData.errno == 0)
-                  return this.databaseprovider.deleteTakeInListRow(this.userAccount, this.selectedCaseNo, getSampling);
-                else {
-                  getFailure++;
-                  this.presentToast("error: 1083");
-                  throw new Error('break this chain');
-                }
-              })
-              .then((deleteResult) => {
-                if (deleteResult == 1) {
-                  console.log(deleteResult);
-                  console.log(getSampling + " ok!");
-                } else {
-                  this.presentToast("error: 1085");
-                  throw new Error('break this chain');
-                }
-              })
-              .catch(function (error) {
-                console.log(getSampling + " 攜入失敗!");
-                console.log(error);
-              });
+    this.sendCount = 0;
+    let sLen = this.selectedSamplingLists.length;
+    for (let i = 0; i < sLen; i++) { 
+      let getSampling = this.selectedSamplingLists[i];
+      this.restProvider.sendSamplingActivity(this.selectedCaseNo, getSampling, "take_in")
+        .then((sendResult) => {
+        this.getSendResult = sendResult;
+        let getstatus = this.getSendResult.status;
+        let getBody = this.getSendResult._body;
+        if (getstatus == 200) {
+          getBody = JSON.parse(getBody);
+          if (getBody.errno == 0) {
+            return this.databaseprovider.deleteTakeInListRow(this.userAccount, this.selectedCaseNo, getSampling);
           } else {
-            this.databaseprovider.deleteTakeInListRow(this.userAccount, this.selectedCaseNo, getSampling)
-              .then((deleteResult) => {
-                if (deleteResult == 1) {
-                  console.log(deleteResult);
-                  console.log(getSampling + " 重複攜入");
-                } else {
-                  this.presentToast("error: 1085");
-                  throw new Error('break this chain');
-                }
-              })
-              .catch(function (error) {
-                console.log(getSampling + " 攜入失敗!");
-                console.log(error);
-              });
+            getFailure++;
           }
+        } else {
+          getFailure++;
         }
       })
-      .catch(function (error) {
-        console.log("get sampling activity list error ");
-        console.log(error);
-      });
-    let sLen = this.selectedSamplingLists.length;
+        .then((deleteResult) => {
+          if (deleteResult == 1) {
+            console.log(getSampling + " ok!");
+          }
+        })
+        .then(() => {
+          this.sendCount++;
+          this.goToFinish(getFailure);
+        })
+    }
+    
+    // this.restProvider.getSamplingActivityList(this.selectedCaseNo, "taken_in")
+    //   .then((activityListResult) => {
+    //     for (let i = 0; i < sLen; i++) {
+    //       let getSampling = this.selectedSamplingLists[i];
+    //       let sendCheck = true;
+    //       for (var actList in activityListResult) {
+    //         //console.log(activityListResult[actList]['saquipment_no'] + "--" + activityListResult[actList]['action_date']);
+    //         if (activityListResult[actList]['saquipment_no'] == getSampling && activityListResult[actList]['action_date'] == getNowDate) {
+    //           sendCheck = false;
+    //           break;
+    //         }
+    //       }
+    //       if (sendCheck) { 
+    //         this.restProvider.sendSamplingActivity(this.selectedCaseNo, getSampling, "take_in")
+    //           .then((sendResult) => {
+    //             let resposeData: any;
+    //             resposeData = sendResult;
+    //             if (resposeData.errno == 0)
+    //               return this.databaseprovider.deleteTakeInListRow(this.userAccount, this.selectedCaseNo, getSampling);
+    //             else {
+    //               getFailure++;
+    //               this.presentToast("error: 1083");
+    //               throw new Error('break this chain');
+    //             }
+    //           })
+    //           .then((deleteResult) => {
+    //             if (deleteResult == 1) {
+    //               console.log(deleteResult);
+    //               console.log(getSampling + " ok!");
+    //             } else {
+    //               this.presentToast("error: 1085");
+    //               throw new Error('break this chain');
+    //             }
+    //           })
+    //           .catch(function (error) {
+    //             console.log(getSampling + " 攜入失敗!");
+    //             console.log(error);
+    //           });
+    //       } else {
+    //         this.databaseprovider.deleteTakeInListRow(this.userAccount, this.selectedCaseNo, getSampling)
+    //           .then((deleteResult) => {
+    //             if (deleteResult == 1) {
+    //               console.log(deleteResult);
+    //               console.log(getSampling + " 重複攜入");
+    //             } else {
+    //               this.presentToast("error: 1085");
+    //               throw new Error('break this chain');
+    //             }
+    //           })
+    //           .catch(function (error) {
+    //             console.log(getSampling + " 攜入失敗!");
+    //             console.log(error);
+    //           });
+    //       }
+    //     }
+    //   })
+    //   .catch(function (error) {
+    //     console.log("get sampling activity list error ");
+    //     console.log(error);
+    //   });
+    
 
    
-    // alert('攜入成功 將轉跳案件清單');
-    // this.navCtrl.setRoot(HomePage);
-    this.navCtrl.push(FinishPage, { itemType: "takein", failureCount: getFailure });
+    // // alert('攜入成功 將轉跳案件清單');
+    // // this.navCtrl.setRoot(HomePage);
+    // this.navCtrl.push(FinishPage, { itemType: "takein", failureCount: getFailure });
+  }
+  goToFinish(getFailure) {
+    if (this.sendCount == this.selectedSamplingLists.length) {
+      console.log('done');
+      this.navCtrl.push(FinishPage, { itemType: "takein", failureCount: getFailure });
+    }
   }
   presentToast(msg) {
     let toast = this.toastCtrl.create({
